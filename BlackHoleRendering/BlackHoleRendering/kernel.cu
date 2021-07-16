@@ -29,7 +29,7 @@ namespace OpenGL
 				{
 					unsigned int dn(0);
 					sscanf(_data.data + n, "%f%n", data + c0, &dn);
-					printf("%f ", data[c0]);
+					//printf("%.2f ", data[c0]);
 					n += dn;
 				}
 			}
@@ -116,39 +116,34 @@ namespace OpenGL
 			frameSizeUniform(&frameSizeBuffer, UniformBuffer, 0),
 			transUniform(&transBuffer, UniformBuffer, 1),
 			cubeData("resources/room/"),
-			cube(&cubeData, 1, RGBA32f, 1, cubeData.bmp[0].header.width, cubeData.bmp[0].header.height),
+			cube(&cubeData, 0, RGBA32f, 1, cubeData.bmp[0].header.width, cubeData.bmp[0].header.height),
 			textureDataCase1(textureWidth* textureWidth, sm.folder.find("resources/case1.txt").readText()),
 			textureDataCase2(textureWidth* textureWidth, sm.folder.find("resources/case2.txt").readText()),
 			textureDataCase2Edge(textureWidth, sm.folder.find("resources/case2_edge.txt").readText()),
-			textureCase1(&textureDataCase1, 2),
-			textureCase2(&textureDataCase2, 3),
-			textureCase2Edge(&textureDataCase2Edge, 4),
+			textureCase1(&textureDataCase1, 1),
+			textureCase2(&textureDataCase2, 2),
+			textureCase2Edge(&textureDataCase2Edge, 3),
 			textureConfigCase1(&textureCase1, Texture2D, R32f, 1, textureWidth, textureWidth),
 			textureConfigCase2(&textureCase2, Texture2D, R32f, 1, textureWidth, textureWidth),
 			textureConfigCase2Edge(&textureCase2Edge, Texture1D, R32f, 1, textureWidth),
 			renderer(&sm)
 		{
 			cube.dataInit(0, TextureInputBGRInt, TextureInputUByte);
-			textureConfigCase1.dataRefresh(0, TextureInputR, TextureInputFloat, 0, 0, textureWidth, textureWidth);
-			textureConfigCase2.dataRefresh(0, TextureInputR, TextureInputFloat, 0, 0, textureWidth, textureWidth);
-			textureConfigCase2Edge.dataRefresh(0, TextureInputR, TextureInputFloat, 0, textureWidth);
+			textureConfigCase1.dataInit(0, TextureInputR, TextureInputFloat);
+			textureConfigCase2.dataInit(0, TextureInputR, TextureInputFloat);
+			textureConfigCase2Edge.dataInit(0, TextureInputR, TextureInputFloat);
 
 			renderer.use();
 			cube.bindUnit();
-
-			
-			glTextureParameteri(textureCase1.texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-			glTextureParameteri(textureCase1.texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-			glTextureParameteri(textureCase2.texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(textureCase2.texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			glTextureParameteri(textureCase2Edge.texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(textureCase2Edge.texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 			textureCase1.bindUnit();
 			textureCase2.bindUnit();
 			textureCase2Edge.bindUnit();
+			
+			using namespace TextureParameter;
+			cube.parameteri(TextureMinFilter, MinFilter_Linear);
+			textureConfigCase1.parameteri(TextureMinFilter, MinFilter_Nearest);
+			textureConfigCase2.parameteri(TextureMinFilter, MinFilter_Linear);
+			textureConfigCase2Edge.parameteri(TextureMinFilter, MinFilter_Nearest);
 
 
 			float black[4]{ 0 };
@@ -242,12 +237,12 @@ int main()
 	{
 		"BlackHoleRendering",
 		{
-			{1280,1280},
+			{800,800},
 			true, false,
 		}
 	};
 	Window::WindowManager wm(winPara);
-	OpenGL::RayTrace test({ 1280, 1280 });
+	OpenGL::RayTrace test({ 800, 800 });
 	wm.init(0, &test);
 	glfwSwapInterval(1);
 	FPS fps;
