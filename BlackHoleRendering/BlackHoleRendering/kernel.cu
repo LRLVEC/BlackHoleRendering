@@ -12,6 +12,42 @@ namespace OpenGL
 {
 	struct RayTrace :OpenGL
 	{
+		struct TextureData :Texture::Data
+		{
+			unsigned int size;
+			float* data;
+
+
+			TextureData(unsigned int _size, String<char> const& _data)
+				:
+				size(_size)
+			{
+				//_data.printInfo();
+				data = (float*)malloc(size * sizeof(float));
+				unsigned int n(0);
+				for (unsigned int c0(0); c0 < size; ++c0)
+				{
+					unsigned int dn(0);
+					sscanf(_data.data + n, "%f%n", data + c0, &dn);
+					printf("%f ", data[c0]);
+					n += dn;
+				}
+			}
+			~TextureData()
+			{
+				if (data)
+				{
+					free(data);
+					data = nullptr;
+				}
+			}
+
+			virtual void* pointer()override
+			{
+				return data;
+			}
+		};
+
 		struct Renderer :Program
 		{
 			RayTracing::View view;
@@ -43,14 +79,30 @@ namespace OpenGL
 
 		SourceManager sm;
 		bool sizeChanged;
+
 		RayTracing::FrameScale frameScale;
 		RayTracing::Transform transform;
+
 		Buffer frameSizeBuffer;
 		Buffer transBuffer;
+
 		BufferConfig frameSizeUniform;
 		BufferConfig transUniform;
+
 		BMPCubeData cubeData;
 		TextureCube cube;
+
+		static constexpr unsigned int textureWidth = 64;
+		TextureData textureDataCase1;
+		TextureData textureDataCase2;
+		TextureData textureDataCase2Edge;
+		Texture textureCase1;
+		Texture textureCase2;
+		Texture textureCase2Edge;
+		TextureConfig<TextureStorage2D>textureConfigCase1;
+		TextureConfig<TextureStorage2D>textureConfigCase2;
+		TextureConfig<TextureStorage1D>textureConfigCase2Edge;
+
 		Renderer renderer;
 
 		RayTrace(Math::vec2<unsigned int> const& _size)
@@ -58,20 +110,52 @@ namespace OpenGL
 			sm(),
 			sizeChanged(true),
 			frameScale(),
-			transform({ {60.0},{0.002,0.9,0.001},{0.01},{0,0,0},700.0 }),
+			transform({ {60.0},{0.002,0.9,0.001},{0.02},{0,0,20},700.0 }),
 			frameSizeBuffer(&frameScale),
 			transBuffer(&transform.bufferData),
 			frameSizeUniform(&frameSizeBuffer, UniformBuffer, 0),
 			transUniform(&transBuffer, UniformBuffer, 1),
 			cubeData("resources/room/"),
-			cube(&cubeData, 2, RGBA32f, 1, cubeData.bmp[0].header.width, cubeData.bmp[0].header.height),
+			cube(&cubeData, 1, RGBA32f, 1, cubeData.bmp[0].header.width, cubeData.bmp[0].header.height),
+			textureDataCase1(textureWidth* textureWidth, sm.folder.find("resources/case1.txt").readText()),
+			textureDataCase2(textureWidth* textureWidth, sm.folder.find("resources/case2.txt").readText()),
+			textureDataCase2Edge(textureWidth, sm.folder.find("resources/case2_edge.txt").readText()),
+			textureCase1(&textureDataCase1, 2),
+			textureCase2(&textureDataCase2, 3),
+			textureCase2Edge(&textureDataCase2Edge, 4),
+			textureConfigCase1(&textureCase1, Texture2D, R32f, 1, textureWidth, textureWidth),
+			textureConfigCase2(&textureCase2, Texture2D, R32f, 1, textureWidth, textureWidth),
+			textureConfigCase2Edge(&textureCase2Edge, Texture1D, R32f, 1, textureWidth),
 			renderer(&sm)
 		{
 			cube.dataInit(0, TextureInputBGRInt, TextureInputUByte);
+			textureConfigCase1.dataRefresh(0, TextureInputR, TextureInputFloat, 0, 0, textureWidth, textureWidth);
+			textureConfigCase2.dataRefresh(0, TextureInputR, TextureInputFloat, 0, 0, textureWidth, textureWidth);
+			textureConfigCase2Edge.dataRefresh(0, TextureInputR, TextureInputFloat, 0, textureWidth);
+
 			renderer.use();
 			cube.bindUnit();
-			glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
+			
+			glTextureParameteri(textureCase1.texture, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTextureParameteri(textureCase1.texture, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glTextureParameteri(textureCase2.texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(textureCase2.texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			glTextureParameteri(textureCase2Edge.texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(textureCase2Edge.texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			textureCase1.bindUnit();
+			textureCase2.bindUnit();
+			textureCase2Edge.bindUnit();
+
+
+			float black[4]{ 0 };
+
+			//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, black);
+
+			glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 		}
 		virtual void init(FrameScale const& _size) override
 		{
@@ -158,14 +242,14 @@ int main()
 	{
 		"BlackHoleRendering",
 		{
-			{1920,1080},
+			{1280,1280},
 			true, false,
 		}
 	};
 	Window::WindowManager wm(winPara);
-	OpenGL::RayTrace test({ 1920,1080 });
+	OpenGL::RayTrace test({ 1280, 1280 });
 	wm.init(0, &test);
-	glfwSwapInterval(0);
+	glfwSwapInterval(1);
 	FPS fps;
 	fps.refresh();
 	while (!wm.close())
