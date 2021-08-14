@@ -145,6 +145,8 @@ namespace OpenGL
 			textureConfigCase2.parameteri(TextureMinFilter, MinFilter_Linear);
 			textureConfigCase2Edge.parameteri(TextureMinFilter, MinFilter_Nearest);
 
+			//textureConfigCase2.parameteri(TextureWarpS, Wrap_ClampToEdge);
+			//textureConfigCase2.parameteri(TextureWarpT, Wrap_ClampToEdge);
 
 			float black[4]{ 0 };
 
@@ -237,7 +239,7 @@ int main()
 	{
 		"BlackHoleRendering",
 		{
-			{800,800},
+			{800, 800},
 			true, false,
 		}
 	};
