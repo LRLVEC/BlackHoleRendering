@@ -95,13 +95,13 @@ namespace OpenGL
 		static constexpr unsigned int textureWidth = 64;
 		TextureData textureDataCase1;
 		TextureData textureDataCase2;
-		TextureData textureDataCase2Edge;
+		TextureData textureDataAlphaM;
 		Texture textureCase1;
 		Texture textureCase2;
-		Texture textureCase2Edge;
+		Texture textureAlphaM;
 		TextureConfig<TextureStorage2D>textureConfigCase1;
 		TextureConfig<TextureStorage2D>textureConfigCase2;
-		TextureConfig<TextureStorage1D>textureConfigCase2Edge;
+		TextureConfig<TextureStorage1D>textureConfigCase2AlphaM;
 
 		Renderer renderer;
 
@@ -117,33 +117,33 @@ namespace OpenGL
 			transUniform(&transBuffer, UniformBuffer, 1),
 			cubeData("resources/room/"),
 			cube(&cubeData, 0, RGBA32f, 1, cubeData.bmp[0].header.width, cubeData.bmp[0].header.height),
-			textureDataCase1(textureWidth* textureWidth, sm.folder.find("resources/case1.txt").readText()),
+			textureDataCase1(textureWidth* textureWidth, sm.folder.find("resources/unified.txt").readText()),
 			textureDataCase2(textureWidth* textureWidth, sm.folder.find("resources/case2.txt").readText()),
-			textureDataCase2Edge(textureWidth, sm.folder.find("resources/case2_edge.txt").readText()),
+			textureDataAlphaM(textureWidth, sm.folder.find("resources/alpha_m.txt").readText()),
 			textureCase1(&textureDataCase1, 1),
 			textureCase2(&textureDataCase2, 2),
-			textureCase2Edge(&textureDataCase2Edge, 3),
+			textureAlphaM(&textureDataAlphaM, 3),
 			textureConfigCase1(&textureCase1, Texture2D, R32f, 1, textureWidth, textureWidth),
 			textureConfigCase2(&textureCase2, Texture2D, R32f, 1, textureWidth, textureWidth),
-			textureConfigCase2Edge(&textureCase2Edge, Texture1D, R32f, 1, textureWidth),
+			textureConfigCase2AlphaM(&textureAlphaM, Texture1D, R32f, 1, textureWidth),
 			renderer(&sm)
 		{
 			cube.dataInit(0, TextureInputBGRInt, TextureInputUByte);
 			textureConfigCase1.dataInit(0, TextureInputR, TextureInputFloat);
 			textureConfigCase2.dataInit(0, TextureInputR, TextureInputFloat);
-			textureConfigCase2Edge.dataInit(0, TextureInputR, TextureInputFloat);
+			textureConfigCase2AlphaM.dataInit(0, TextureInputR, TextureInputFloat);
 
 			renderer.use();
 			cube.bindUnit();
 			textureCase1.bindUnit();
 			textureCase2.bindUnit();
-			textureCase2Edge.bindUnit();
+			textureAlphaM.bindUnit();
 			
 			using namespace TextureParameter;
 			cube.parameteri(TextureMinFilter, MinFilter_Linear);
 			textureConfigCase1.parameteri(TextureMinFilter, MinFilter_Nearest);
 			textureConfigCase2.parameteri(TextureMinFilter, MinFilter_Linear);
-			textureConfigCase2Edge.parameteri(TextureMinFilter, MinFilter_Nearest);
+			textureConfigCase2AlphaM.parameteri(TextureMinFilter, MinFilter_Nearest);
 
 			//textureConfigCase2.parameteri(TextureWarpS, Wrap_ClampToEdge);
 			//textureConfigCase2.parameteri(TextureWarpT, Wrap_ClampToEdge);
@@ -239,12 +239,12 @@ int main()
 	{
 		"BlackHoleRendering",
 		{
-			{800, 800},
+			{1200, 1200},
 			true, false,
 		}
 	};
 	Window::WindowManager wm(winPara);
-	OpenGL::RayTrace test({ 800, 800 });
+	OpenGL::RayTrace test({ 1200, 1200 });
 	wm.init(0, &test);
 	glfwSwapInterval(1);
 	FPS fps;
