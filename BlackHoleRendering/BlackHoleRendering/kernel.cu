@@ -1,4 +1,5 @@
-﻿#include <GL/_Window.h>
+﻿#pragma comment( linker, "/subsystem:\"windows\" /entry:\"mainCRTStartup\"" )
+#include <GL/_Window.h>
 #include <GL/_Texture.h>
 #include <CUDA/_CUDA.h>
 #include <_Math.h>
@@ -110,7 +111,7 @@ namespace OpenGL
 			sm(),
 			sizeChanged(true),
 			frameScale(),
-			transform({ {60.0},{0.002,0.9,0.001},{0.02},{0,0,20},700.0 }),
+			transform({ {60.0},{0.002,0.9,0.001},{0.02, 0.005},{0,0,20},700.0 }),
 			frameSizeBuffer(&frameScale),
 			transBuffer(&transform.bufferData),
 			frameSizeUniform(&frameSizeBuffer, UniformBuffer, 0),
@@ -227,6 +228,8 @@ namespace OpenGL
 			case GLFW_KEY_D:transform.key.refresh(1, _action); break;
 			case GLFW_KEY_W:transform.key.refresh(2, _action); break;
 			case GLFW_KEY_S:transform.key.refresh(3, _action); break;
+			case GLFW_KEY_E:transform.key.refresh(4, _action); break;
+			case GLFW_KEY_Q:transform.key.refresh(5, _action); break;
 			}
 		}
 	};
@@ -239,23 +242,23 @@ int main()
 	{
 		"BlackHoleRendering",
 		{
-			{1200, 1200},
+			{3840, 2160},
 			true, false,
 		}
 	};
 	Window::WindowManager wm(winPara);
-	OpenGL::RayTrace test({ 1200, 1200 });
+	OpenGL::RayTrace test({ 3840, 2160 });
 	wm.init(0, &test);
 	glfwSwapInterval(1);
-	FPS fps;
-	fps.refresh();
+	//FPS fps;
+	//fps.refresh();
 	while (!wm.close())
 	{
 		wm.pullEvents();
 		wm.render();
 		wm.swapBuffers();
-		fps.refresh();
-		fps.printFPS(1);
+		//fps.refresh();
+		//fps.printFPS(1);
 	}
 	return 0;
 }
