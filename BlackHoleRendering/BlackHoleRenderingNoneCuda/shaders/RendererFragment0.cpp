@@ -19,9 +19,10 @@ layout(std140, row_major, binding = 1)uniform Trans
 	float times;
 };
 layout(binding = 0)uniform samplerCube cubeSmp;
-layout(binding = 1)uniform sampler2D texSmpCase1;
+layout(binding = 1)uniform sampler2D texUnified;
 layout(binding = 2)uniform sampler2D texSmpCase2;
-layout(binding = 3)uniform sampler1D texSmpCase2Edge;
+layout(binding = 3)uniform sampler1D texPsim;
+//layout(binding = 3)uniform sampler1D psim;
 out vec4 o_color;
 
 float map(float p)
@@ -31,6 +32,16 @@ float map(float p)
 vec2 map(vec2 p)
 {
 	return p * vec2(float(Num - 1) / Num) + vec2(1.0 / (2 * Num));
+}
+
+float psi2(float x)
+{
+	float t = 0.0000166777;
+	t = t * x - 0.0000499505;
+	t = t * x + 0.0000596807;
+	t = t * x - 0.0000412057;
+	t = t * x + 1;
+	return t;
 }
 
 vec3 escapeDirectionColor(vec3 v0)
@@ -45,21 +56,23 @@ vec3 escapeDirectionColor(vec3 v0)
 		return vec3(0);
 
 	float u0 = 1 / rr0;
-	float s2 = 1 - c * c;
-	float e2 = (1 - u0) / (s2 * rr0 * rr0);
-	float q = u0 / u_ratio;
-	float alpha_m = texture(texSmpCase2Edge, map(q)).x;
-	float alpha = atan(sqrt(s2) * inversesqrt(1 - u0) / abs(c));
-	if (c < 0)alpha = Pi - alpha;
 
-	float p = alpha / (alpha_m * alpha_ratio);
-	if (p > 1)return vec3(0);
-	float deltaPhi = texture(texSmpCase1, map(vec2(p, q))).x;
+	float u0r = u0 / u_ratio;
+	float x = 2 * acos(u0) / Pi;
+	float xr = 2 * acos(u0r) / Pi;
+	float psim = texture(texPsim, map(x)).x;
+	float psi = acos(c);
+	float psi2u = psi2(u0);
+	if (psi > psi2u * psim)return vec3(0);
+	float y = atanh(psi / psim) / atanh(psi2u);
+
+	float deltaPhi = texture(texUnified, map(vec2(y, xr))).x;
+
 
 	vec3 n = cross(r0, v0);
-	vec3 y = normalize(cross(n, r0));
-	vec3 x = r0 / rr0;
-	return texture(cubeSmp, x * cos(deltaPhi) + y * sin(deltaPhi)).xyz;
+	vec3 y0 = normalize(cross(n, r0));
+	vec3 x0 = r0 / rr0;
+	return texture(cubeSmp, x0 * cos(deltaPhi) + y0 * sin(deltaPhi)).xyz;
 }
 
 void main()
@@ -68,5 +81,5 @@ void main()
 	o_color = vec4(escapeDirectionColor(n), 1);
 
 	//vec2 pos = gl_FragCoord.xy / vec2(size);
-	//o_color = vec4(texture(texSmpCase2, map(pos)).x / (2.5 * Pi));
+	//o_color = vec4(texture(unified, map(pos)).x/(4*Pi));
 }

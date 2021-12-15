@@ -92,15 +92,15 @@ namespace OpenGL
 		TextureCube cube;
 
 		static constexpr unsigned int textureWidth = 64;
-		TextureData textureDataCase1;
+		TextureData textureDataUnified;
 		TextureData textureDataCase2;
-		TextureData textureDataAlphaM;
-		Texture textureCase1;
+		TextureData textureDataPisM;
+		Texture textureUnified;
 		Texture textureCase2;
-		Texture textureAlphaM;
-		TextureConfig<TextureStorage2D>textureConfigCase1;
+		Texture texturePsiM;
+		TextureConfig<TextureStorage2D>textureConfigUnified;
 		TextureConfig<TextureStorage2D>textureConfigCase2;
-		TextureConfig<TextureStorage1D>textureConfigCase2AlphaM;
+		TextureConfig<TextureStorage1D>textureConfigPsiM;
 
 		Renderer renderer;
 
@@ -109,40 +109,40 @@ namespace OpenGL
 			sm(),
 			sizeChanged(true),
 			frameScale(),
-			transform({ {60.0},{0.05,0.9,0.001},{0.05, 0.01},{0,0,20},700.0 }),
+			transform({ {60.0},{0.02,0.9,0.001},{0.03, 0.01},{0,0,15},700.0 }),
 			frameSizeBuffer(&frameScale),
 			transBuffer(&transform.bufferData),
 			frameSizeUniform(&frameSizeBuffer, UniformBuffer, 0),
 			transUniform(&transBuffer, UniformBuffer, 1),
 			cubeData("resources/starmap/"),
 			cube(&cubeData, 0, RGBA32f, 1, cubeData.bmp[0].header.width, cubeData.bmp[0].header.height),
-			textureDataCase1(textureWidth* textureWidth, sm.folder.find("resources/unified.txt").readText()),
+			textureDataUnified(256 * 256, sm.folder.find("resources/unified_v2.0.txt").readText()),
 			textureDataCase2(textureWidth* textureWidth, sm.folder.find("resources/case2.txt").readText()),
-			textureDataAlphaM(textureWidth, sm.folder.find("resources/alpha_m.txt").readText()),
-			textureCase1(&textureDataCase1, 1),
+			textureDataPisM(256, sm.folder.find("resources/psim.txt").readText()),
+			textureUnified(&textureDataUnified, 1),
 			textureCase2(&textureDataCase2, 2),
-			textureAlphaM(&textureDataAlphaM, 3),
-			textureConfigCase1(&textureCase1, Texture2D, R32f, 1, textureWidth, textureWidth),
+			texturePsiM(&textureDataPisM, 3),
+			textureConfigUnified(&textureUnified, Texture2D, R32f, 1, 256, 256),
 			textureConfigCase2(&textureCase2, Texture2D, R32f, 1, textureWidth, textureWidth),
-			textureConfigCase2AlphaM(&textureAlphaM, Texture1D, R32f, 1, textureWidth),
+			textureConfigPsiM(&texturePsiM, Texture1D, R32f, 1, 256),
 			renderer(&sm)
 		{
 			cube.dataInit(0, TextureInputBGRInt, TextureInputUByte);
-			textureConfigCase1.dataInit(0, TextureInputR, TextureInputFloat);
+			textureConfigUnified.dataInit(0, TextureInputR, TextureInputFloat);
 			textureConfigCase2.dataInit(0, TextureInputR, TextureInputFloat);
-			textureConfigCase2AlphaM.dataInit(0, TextureInputR, TextureInputFloat);
+			textureConfigPsiM.dataInit(0, TextureInputR, TextureInputFloat);
 
 			renderer.use();
 			cube.bindUnit();
-			textureCase1.bindUnit();
+			textureUnified.bindUnit();
 			textureCase2.bindUnit();
-			textureAlphaM.bindUnit();
+			texturePsiM.bindUnit();
 
 			using namespace TextureParameter;
 			cube.parameteri(TextureMinFilter, MinFilter_Linear);
-			textureConfigCase1.parameteri(TextureMinFilter, MinFilter_Nearest);
+			textureConfigUnified.parameteri(TextureMinFilter, MinFilter_Nearest);
 			textureConfigCase2.parameteri(TextureMinFilter, MinFilter_Linear);
-			textureConfigCase2AlphaM.parameteri(TextureMinFilter, MinFilter_Nearest);
+			textureConfigPsiM.parameteri(TextureMinFilter, MinFilter_Nearest);
 
 			//textureConfigCase2.parameteri(TextureWarpS, Wrap_ClampToEdge);
 			//textureConfigCase2.parameteri(TextureWarpT, Wrap_ClampToEdge);
@@ -180,6 +180,7 @@ namespace OpenGL
 				transUniform.refreshData();
 				transform.updated = false;
 			}
+			printf("%f", transform.dr.length());
 			renderer.use();
 			renderer.run();
 		}
@@ -240,12 +241,12 @@ int main()
 	{
 		"BlackHoleRendering",
 		{
-			{800, 800},
+			{1080, 1080},
 			true, false,
 		}
 	};
 	Window::WindowManager wm(winPara);
-	OpenGL::RayTrace test({ 800, 800 });
+	OpenGL::RayTrace test({ 1080, 1080 });
 	wm.init(0, &test);
 	glfwSwapInterval(1);
 	FPS fps;

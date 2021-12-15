@@ -1,5 +1,0 @@
-Program:	Renderer
-{
-	Vertex		0
-	Fragment	0
-}
