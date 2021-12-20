@@ -4,7 +4,7 @@
 #define um 0.6664
 #define alpha_ratio 0.999
 #define u_ratio 0.9999
-#define Num 64
+#define Num 256
 #define offset (1.0 / (2 * Num))
 
 layout(std140, binding = 0)uniform Size
@@ -23,6 +23,7 @@ layout(binding = 1)uniform sampler2D texUnified;
 layout(binding = 2)uniform sampler2D texSmpCase2;
 layout(binding = 3)uniform sampler1D texPsim;
 //layout(binding = 3)uniform sampler1D psim;
+in vec4 gl_FragCoord;
 out vec4 o_color;
 
 float map(float p)
@@ -37,11 +38,16 @@ vec2 map(vec2 p)
 float psi2(float x)
 {
 	float t = 0.0000166777;
-	t = t * x - 0.0000499505;
-	t = t * x + 0.0000596807;
-	t = t * x - 0.0000412057;
-	t = t * x + 1;
+	t = fma(t, x, -0.0000499505);
+	t = fma(t, x, 0.0000596807);
+	t = fma(t, x, -0.0000412057);
+	t = fma(t, x, 1);
 	return t;
+}
+
+float rand(vec2 a)
+{
+	return fract(sin(dot(a.xy, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 vec3 escapeDirectionColor(vec3 v0)
@@ -65,7 +71,6 @@ vec3 escapeDirectionColor(vec3 v0)
 	float psi2u = psi2(u0);
 	if (psi > psi2u * psim)return vec3(0);
 	float y = atanh(psi / psim) / atanh(psi2u);
-
 	float deltaPhi = texture(texUnified, map(vec2(y, xr))).x;
 
 
@@ -77,9 +82,28 @@ vec3 escapeDirectionColor(vec3 v0)
 
 void main()
 {
-	vec3 n = normalize(trans * vec3(2 * gl_FragCoord.xy - size, z0));
-	o_color = vec4(escapeDirectionColor(n), 1);
+	int c0 = 0;
+	vec3 color = vec3(0);
+	vec2 deltaXY;
+	deltaXY.y = gl_FragCoord.y - 0.375;
+	for (; c0 < 4; ++c0)
+	{
+		deltaXY.x = gl_FragCoord.x - 0.375;
+		int c1 = 0;
+		for (; c1 < 4; ++c1)
+		{
+			vec3 n = normalize(trans * vec3(2 * deltaXY - size, z0));
+			color += escapeDirectionColor(n);
+			deltaXY.x += 0.25;
+		}
+		deltaXY.y += 0.25;
+	}
 
-	//vec2 pos = gl_FragCoord.xy / vec2(size);
-	//o_color = vec4(texture(unified, map(pos)).x/(4*Pi));
+	o_color = vec4(color * (2.0 / 16), 1);
+
+	//vec3 n = normalize(trans * vec3(2 * gl_FragCoord.xy - size, z0));
+	//o_color = vec4(escapeDirectionColor(n), 1);
+
+	//vec2 pos = (gl_FragCoord.xy - vec2(0.5)) / vec2(size);
+	//o_color = vec4(1*texture(texUnified, vec2(0.00, 0.8)).x);
 }
